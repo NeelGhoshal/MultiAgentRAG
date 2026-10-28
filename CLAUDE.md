@@ -34,8 +34,11 @@ data/lecture/*.pdf     lecture notes
 data/textbook/*.pdf    textbook
 tutor/config.py        paths, model, chunk settings
 tutor/ingest.py        PDF → chunks → Chroma (python -m tutor.ingest)
-tutor/router.py        (step 2)
-tutor/tutor.py         (step 2)
+tutor/llm.py           shared Anthropic call helper (complete / complete_json)
+tutor/router.py        Router agent: route(question) -> lecture | textbook | off_topic
+tutor/tutor.py         Tutor agent: retrieve(), answer(), ask() = Router -> Tutor
+tests/questions.json   15 test questions (5 lecture, 5 textbook, 5 off_topic)
+tests/run_questions.py python -m tests.run_questions [--route]
 tutor/verifier.py      (step 3)
 tutor/quizzer.py       (step 4)
 app.py                 Streamlit UI with Ask and Quiz tabs (step 5)

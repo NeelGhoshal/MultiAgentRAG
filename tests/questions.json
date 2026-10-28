@@ -1,0 +1,19 @@
+[
+  {"question": "What is the grading breakdown for this course?", "expected": "lecture"},
+  {"question": "In the lecture slides, what is the policy gradient trick?", "expected": "lecture"},
+  {"question": "How did the lecture explain Gram-Schmidt orthogonalization?", "expected": "lecture"},
+  {"question": "What does the lecture say about the E-step and M-step of the EM algorithm?", "expected": "lecture"},
+  {"question": "According to the slides, what is the Cholesky decomposition?", "expected": "lecture"},
+
+  {"question": "How does the textbook derive PCA from the maximum variance perspective?", "expected": "textbook"},
+  {"question": "What is the textbook's definition of a vector space?", "expected": "textbook"},
+  {"question": "In the book, how is the Moore-Penrose pseudo-inverse used in linear regression?", "expected": "textbook"},
+  {"question": "Prove that a symmetric matrix has real eigenvalues, as the textbook does.", "expected": "textbook"},
+  {"question": "What does the textbook chapter on analytic geometry say about angles between vectors?", "expected": "textbook"},
+
+  {"question": "What's the capital of Australia?", "expected": "off_topic"},
+  {"question": "How do I bake sourdough bread?", "expected": "off_topic"},
+  {"question": "How does multi-head attention work in transformers?", "expected": "off_topic"},
+  {"question": "Write me a Python web scraper for news headlines.", "expected": "off_topic"},
+  {"question": "Who won the 2022 FIFA World Cup?", "expected": "off_topic"}
+]

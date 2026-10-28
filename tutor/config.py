@@ -8,7 +8,9 @@ PROGRESS_FILE = ROOT / "progress.json"
 COLLECTION = "course"
 SOURCES = ("lecture", "textbook")  # subfolder names under data/ == metadata tag
 
-MODEL = "claude-opus-5-5"
+# Any OpenAI-compatible endpoint works; Groq hosts open-weight models with a free tier.
+LLM_BASE_URL = "https://api.groq.com/openai/v1"
+MODEL = "openai/gpt-oss-120b"  # open-weight (Apache 2.0); supports strict JSON-schema output on Groq
 
 CHUNK_SIZE = 1000  # characters
 CHUNK_OVERLAP = 150

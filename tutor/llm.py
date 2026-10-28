@@ -1,41 +1,50 @@
-"""Thin wrapper around the Anthropic SDK shared by all agents."""
+"""Thin wrapper around an OpenAI-compatible chat API, shared by all agents.
+
+Defaults to the open-weight gpt-oss-120b model hosted on Groq (free tier); see tutor/config.py.
+"""
 import json
+import os
 from functools import cache
 
-import anthropic
 from dotenv import load_dotenv
+from openai import OpenAI
 
-from tutor.config import MODEL
+from tutor.config import LLM_BASE_URL, MODEL
 
 load_dotenv()
 
 
 @cache
-def _client() -> anthropic.Anthropic:
-    return anthropic.Anthropic()
+def _client() -> OpenAI:
+    key = os.environ.get("GROQ_API_KEY")
+    if not key:
+        raise RuntimeError("GROQ_API_KEY is not set. Add it to .env (see README > Setup).")
+    return OpenAI(base_url=LLM_BASE_URL, api_key=key)
 
-# If a safety classifier declines a request, the API re-runs it on Anthropic's
-# recommended fallback model instead of returning a refusal.
-_FALLBACK = {"betas": ["server-side-fallback-2026-07-01"], "fallbacks": "default"}
 
-
-def complete(system: str, prompt: str, *, effort: str = "medium", max_tokens: int = 16000,
+def complete(system: str, prompt: str, *, effort: str = "medium", max_tokens: int = 4096,
              schema: dict | None = None) -> str:
-    """One-shot call. Returns the text of the reply (valid JSON when `schema` is given)."""
-    output_config = {"effort": effort}
+    """One-shot call. Returns the text of the reply (valid JSON when `schema` is given).
+
+    `effort` (low | medium | high) sets gpt-oss's reasoning effort.
+    """
+    kwargs = {}
     if schema:
-        output_config["format"] = {"type": "json_schema", "schema": schema}
-    response = _client().beta.messages.create(
+        kwargs["response_format"] = {
+            "type": "json_schema",
+            "json_schema": {"name": "output", "strict": True, "schema": schema},
+        }
+    response = _client().chat.completions.create(
         model=MODEL,
-        max_tokens=max_tokens,
-        system=system,
-        messages=[{"role": "user", "content": prompt}],
-        output_config=output_config,
-        **_FALLBACK,
+        messages=[{"role": "system", "content": system}, {"role": "user", "content": prompt}],
+        max_completion_tokens=max_tokens,
+        reasoning_effort=effort,
+        **kwargs,
     )
-    if response.stop_reason == "refusal":
-        raise RuntimeError(f"Model declined the request (request id {response._request_id})")
-    return "".join(b.text for b in response.content if b.type == "text")
+    choice = response.choices[0]
+    if choice.finish_reason == "length":
+        raise RuntimeError(f"Reply cut off at max_tokens={max_tokens}; raise it for this call.")
+    return choice.message.content or ""
 
 
 def complete_json(system: str, prompt: str, schema: dict, **kwargs) -> dict:

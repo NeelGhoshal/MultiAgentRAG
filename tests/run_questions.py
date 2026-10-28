@@ -21,6 +21,9 @@ def main(route_only: bool) -> None:
         correct += ok
         print(f"{'PASS' if ok else 'FAIL'}  expected={q['expected']:9} got={result['route']:9}  {q['question']}")
         if not route_only:
+            if result["retried"]:
+                print("  verifier flagged (retried):\n" + "\n".join(
+                    f"    - {c}" for c in result["verdict"]["unsupported_claims"]))
             print("\n" + result["answer"] + "\n" + "-" * 80)
     print(f"\nRouting: {correct}/{len(QUESTIONS)} correct")
 

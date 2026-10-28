@@ -36,10 +36,11 @@ tutor/config.py        paths, model, chunk settings
 tutor/ingest.py        PDF → chunks → Chroma (python -m tutor.ingest)
 tutor/llm.py           shared Anthropic call helper (complete / complete_json)
 tutor/router.py        Router agent: route(question) -> lecture | textbook | off_topic
-tutor/tutor.py         Tutor agent: retrieve(), answer(), ask() = Router -> Tutor
+tutor/tutor.py         Tutor agent: retrieve(), answer(), ask() = Router -> Tutor -> Verifier (1 retry)
+tutor/verifier.py      Verifier agent: verify(answer, chunks) -> {supported, unsupported_claims}
 tests/questions.json   15 test questions (5 lecture, 5 textbook, 5 off_topic)
 tests/run_questions.py python -m tests.run_questions [--route]
-tutor/verifier.py      (step 3)
+tests/check_verifier.py forced wrong answer must be caught (python -m tests.check_verifier)
 tutor/quizzer.py       (step 4)
 app.py                 Streamlit UI with Ask and Quiz tabs (step 5)
 chroma_db/             persisted vector store (gitignored)

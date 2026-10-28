@@ -6,6 +6,7 @@ from tutor.config import TOP_K
 from tutor.ingest import get_collection
 from tutor.llm import complete
 from tutor.router import OFF_TOPIC_REPLY, route
+from tutor.verifier import feedback, verify
 
 SYSTEM = """You are a tutor for a "Mathematics for Machine Learning" course.
 Answer the student's question using ONLY the course excerpts provided. Do not add facts, formulas or examples
@@ -49,17 +50,36 @@ def answer(question: str, source: str, feedback: str | None = None,
 
 
 def ask(question: str) -> dict:
-    """Router -> Tutor. Returns {"route", "answer", "chunks"}."""
+    """Router -> Tutor -> Verifier, with at most one Tutor retry.
+
+    Returns {"route", "answer", "chunks", "verdict", "retried", "first_answer"}.
+    `verdict` is the Verifier's check of the first answer; the retry is not re-verified.
+    """
     r = route(question)
     if r == "off_topic":
-        return {"route": r, "answer": OFF_TOPIC_REPLY, "chunks": []}
-    return {"route": r, **answer(question, r)}
+        return {"route": r, "answer": OFF_TOPIC_REPLY, "chunks": [], "verdict": None,
+                "retried": False, "first_answer": None}
+
+    first = answer(question, r)
+    if not first["chunks"]:
+        return {"route": r, **first, "verdict": None, "retried": False, "first_answer": None}
+
+    verdict = verify(first["answer"], first["chunks"])
+    result = {"route": r, **first, "verdict": verdict, "retried": False, "first_answer": first["answer"]}
+    if not verdict["supported"]:
+        retry = answer(question, r, feedback=feedback(verdict), chunks=first["chunks"])
+        result.update(answer=retry["answer"], retried=True)
+    return result
 
 
 if __name__ == "__main__":
     import sys
 
     result = ask(" ".join(sys.argv[1:]) or "What is the rank of a matrix?")
-    print(f"route: {result['route']}\n\n{result['answer']}\n")
+    print(f"route: {result['route']}")
+    if result["retried"]:
+        print("verifier flagged:\n" + feedback(result["verdict"]))
+        print(f"\nfirst answer:\n{result['first_answer']}\n\nafter retry:")
+    print(f"\n{result['answer']}\n")
     for c in result["chunks"]:
         print("  source:", c["citation"])

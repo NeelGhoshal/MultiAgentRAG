@@ -41,10 +41,11 @@ tutor/verifier.py      Verifier agent: verify(answer, chunks) -> {supported, uns
 tests/questions.json   15 test questions (5 lecture, 5 textbook, 5 off_topic)
 tests/run_questions.py python -m tests.run_questions [--route]
 tests/check_verifier.py forced wrong answer must be caught (python -m tests.check_verifier)
-tutor/quizzer.py       (step 4)
+tutor/quizzer.py       Quizzer agent: next_question(topic?) -> grade(quiz, reply); CLI: python -m tutor.quizzer
+tests/check_quizzer.py offline check of progress.json logic, LLM stubbed (python -m tests.check_quizzer)
 app.py                 Streamlit UI with Ask and Quiz tabs (step 5)
 chroma_db/             persisted vector store (gitignored)
-progress.json          missed quiz topics (gitignored)
+progress.json          {"missed": [queue of {topic, misses, last_citation}], "history": [...]} (gitignored)
 ```
 
 ## Conventions

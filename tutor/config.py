@@ -8,9 +8,9 @@ PROGRESS_FILE = ROOT / "progress.json"
 COLLECTION = "course"
 SOURCES = ("lecture", "textbook")  # subfolder names under data/ == metadata tag
 
-# Any OpenAI-compatible endpoint works; Groq hosts open-weight models with a free tier.
-LLM_BASE_URL = "https://api.groq.com/openai/v1"
-MODEL = "openai/gpt-oss-120b"  # open-weight (Apache 2.0); supports strict JSON-schema output on Groq
+# Local model served by Ollama. qwen3:8b fits in 8 GB of VRAM; with 16+ GB, gpt-oss:20b is stronger.
+MODEL = "qwen3:8b"
+NUM_CTX = 8192  # context window; Ollama's default is too small for excerpts + answer + reasoning
 
 CHUNK_SIZE = 1000  # characters
 CHUNK_OVERLAP = 150

@@ -4,11 +4,33 @@ A tutor for a *Mathematics for Machine Learning* course that answers **only** fr
 and textbook, cites the page every claim comes from, checks its own answers, and quizzes you on the material,
 coming back to the topics you missed.
 
-![Demo](docs/demo.gif)
+## Screenshots
+
+**1. Ask tab.** Type a question about the course. The sidebar tracks topics you've missed in quizzes.
+
+![Ask tab with a question entered](docs/screenshots/1-ask.png)
+
+**2. A verified answer.** The Router sent "What is Linear Regression" to the lecture slides. The Tutor answered
+from the retrieved excerpts with a page citation (`[19_Linear_Regression_MLE_and_MAP.pdf p.11]`), and the Verifier
+confirmed every claim is supported. The excerpts the answer was built from can be opened underneath.
+
+![Answer with citation, Verifier approval and retrieved excerpts](docs/screenshots/2-answer-verified.png)
+
+**3. Quiz: a wrong answer.** The Quizzer wrote a question on change-of-basis matrices from a textbook chunk, graded
+the reply as incorrect, explained the right relationship, and offers the reference answer. The topic is logged
+to `progress.json` as missed.
+
+![Quiz question graded as incorrect with feedback](docs/screenshots/3-quiz-incorrect.png)
+
+**4. Quiz: a correct answer, with missed topics tracked.** A question on representing a matrix as a vector is
+graded correct, with the reference answer and its citation (`[mml-book.pdf p.28]`). The sidebar now lists
+"Change of Basis Matrices" from screenshot 3, which the next quiz will review first.
+
+![Quiz question graded correct; sidebar shows the missed topic](docs/screenshots/4-quiz-correct-missed-topics.png)
 
 ## How it works
 
-Four agents, each a single LLM call to the open-weight `gpt-oss-120b` model (hosted free on Groq), over one Chroma collection:
+Four agents, each a single call to a local open-weight model (`qwen3:8b` via Ollama, no API key), over one Chroma collection:
 
 ```mermaid
 flowchart LR
@@ -59,7 +81,7 @@ TODO: paste the output of `python -m tests.check_verifier` here
 
 ```bash
 pip install -r requirements.txt
-cp .env.example .env            # then set GROQ_API_KEY (free at https://console.groq.com/keys)
+ollama pull qwen3:8b             # install Ollama first: https://ollama.com/download
 ```
 
 Put PDFs in `data/lecture/` and `data/textbook/`, then build the vector store (rebuilds from scratch each run):

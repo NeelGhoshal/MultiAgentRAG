@@ -4,6 +4,8 @@ A tutor for a *Mathematics for Machine Learning* course that answers **only** fr
 and textbook, cites the page every claim comes from, checks its own answers, and quizzes you on the material,
 coming back to the topics you missed.
 
+**Live demo:** https://course-tutor.onrender.com (free Render instance; the first load after it's been idle takes about a minute)
+
 ## Screenshots
 
 **1. Ask tab.** Type a question about the course. The sidebar tracks topics you've missed in quizzes.
@@ -105,7 +107,7 @@ Render has no GPU, so the deployed app uses a hosted model on Groq's free tier (
 
 The `Dockerfile` installs dependencies and runs `python -m tutor.ingest` during the build, so the Chroma store and its
 embedding model ship inside the image. `render.yaml` defines a free-plan Docker web service; set `GROQ_API_KEY` in the
-Render dashboard. On the free plan the service sleeps when idle, and `progress.json` resets on each restart.
+Render dashboard. It's live at https://course-tutor.onrender.com. On the free plan the service sleeps when idle, and `progress.json` resets on each restart.
 
 ## Tests
 

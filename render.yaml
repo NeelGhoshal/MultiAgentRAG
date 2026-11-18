@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: course-tutor
+    runtime: docker
+    plan: free
+    branch: main
+    healthCheckPath: /_stcore/health
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false

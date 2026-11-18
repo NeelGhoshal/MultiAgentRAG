@@ -34,7 +34,7 @@ data/lecture/*.pdf     lecture notes
 data/textbook/*.pdf    textbook
 tutor/config.py        paths, model, chunk settings
 tutor/ingest.py        PDF → chunks → Chroma (python -m tutor.ingest)
-tutor/llm.py           shared LLM call helper (complete / complete_json) for a local Ollama model
+tutor/llm.py           shared LLM call helper (complete / complete_json): Groq if GROQ_API_KEY is set, else local Ollama
 tutor/router.py        Router agent: route(question) -> lecture | textbook | off_topic
 tutor/tutor.py         Tutor agent: retrieve(), answer(), ask() = Router -> Tutor -> Verifier (1 retry)
 tutor/verifier.py      Verifier agent: verify(answer, chunks) -> {supported, unsupported_claims}
@@ -44,6 +44,8 @@ tests/check_verifier.py forced wrong answer must be caught (python -m tests.chec
 tutor/quizzer.py       Quizzer agent: next_question(topic?) -> grade(quiz, reply); CLI: python -m tutor.quizzer
 tests/check_quizzer.py offline check of progress.json logic, LLM stubbed (python -m tests.check_quizzer)
 app.py                 Streamlit UI with Ask and Quiz tabs (streamlit run app.py)
+Dockerfile             Render image: installs deps, runs ingestion at build time, serves Streamlit on $PORT
+render.yaml            Render Blueprint: free-plan Docker web service, GROQ_API_KEY set in dashboard
 docs/screenshots/      UI screenshots shown in the README
 chroma_db/             persisted vector store (gitignored)
 progress.json          {"missed": [queue of {topic, misses, last_citation}], "history": [...]} (gitignored)
@@ -52,5 +54,7 @@ progress.json          {"missed": [queue of {topic, misses, last_citation}], "hi
 ## Conventions
 
 - LLM: local open-weight model via Ollama (`ollama` Python package), default `qwen3:8b` (`MODEL` / `NUM_CTX` in `tutor/config.py`). No API key; optional `OLLAMA_HOST` in `.env`.
+- Deployed (Render): Groq free tier, `GROQ_MODEL` in `tutor/config.py` (default `openai/gpt-oss-120b`), used whenever `GROQ_API_KEY` is set.
+- `.env` holds secrets (`RENDER_KEY`, `GROQ_API_KEY`) and is gitignored and dockerignored.
 - Chunk metadata: `source`, `file`, `page`, `chunk_id`. Citations are built from `file` + `page`.
 - Re-running ingestion rebuilds the collection from scratch.

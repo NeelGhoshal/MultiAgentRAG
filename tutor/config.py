@@ -12,6 +12,10 @@ SOURCES = ("lecture", "textbook")  # subfolder names under data/ == metadata tag
 MODEL = "qwen3:8b"
 NUM_CTX = 8192  # context window; Ollama's default is too small for excerpts + answer + reasoning
 
+# Hosted model on Groq's free tier, used instead of Ollama when GROQ_API_KEY is set (e.g. on Render).
+# Override with the GROQ_MODEL env var.
+GROQ_MODEL = "openai/gpt-oss-120b"
+
 CHUNK_SIZE = 1000  # characters
 CHUNK_OVERLAP = 150
 TOP_K = 5

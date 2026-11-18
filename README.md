@@ -98,6 +98,15 @@ python -m tutor.tutor "What is an eigenvector?"   # one question from the termin
 python -m tutor.quizzer [topic]              # quiz loop in the terminal
 ```
 
+## Deploy (Render)
+
+Render has no GPU, so the deployed app uses a hosted model on Groq's free tier (`openai/gpt-oss-120b`) instead of Ollama.
+`tutor/llm.py` switches to Groq whenever `GROQ_API_KEY` is set, and falls back to Ollama when it isn't.
+
+The `Dockerfile` installs dependencies and runs `python -m tutor.ingest` during the build, so the Chroma store and its
+embedding model ship inside the image. `render.yaml` defines a free-plan Docker web service; set `GROQ_API_KEY` in the
+Render dashboard. On the free plan the service sleeps when idle, and `progress.json` resets on each restart.
+
 ## Tests
 
 ```bash
@@ -115,6 +124,7 @@ data/textbook/*.pdf     textbook                tutor/tutor.py      Tutor agent 
 tutor/config.py         paths, model, chunking  tutor/verifier.py   Verifier agent
 tutor/ingest.py         PDF -> chunks -> Chroma tutor/quizzer.py    Quizzer agent
 tutor/llm.py            shared LLM call         app.py              Streamlit UI
+Dockerfile, render.yaml Render deployment
 tests/                  test questions and checks
 ```
 

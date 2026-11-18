@@ -20,6 +20,13 @@ def _use_groq() -> bool:
     return bool(os.environ.get("GROQ_API_KEY"))
 
 
+def backend_name() -> str:
+    """Human-readable 'provider · model', for display."""
+    if _use_groq():
+        return f"Groq · {os.environ.get('GROQ_MODEL', GROQ_MODEL)}"
+    return f"Ollama · {MODEL}"
+
+
 # ---- Groq --------------------------------------------------------------------
 
 @cache

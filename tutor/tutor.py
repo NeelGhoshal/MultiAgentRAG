@@ -2,6 +2,9 @@
 
 Run: python -m tutor.tutor "What is the rank of a matrix?"
 """
+import time
+from collections.abc import Callable
+
 from tutor.config import TOP_K
 from tutor.ingest import get_collection
 from tutor.llm import complete
@@ -49,25 +52,45 @@ def answer(question: str, source: str, feedback: str | None = None,
     return {"answer": complete(SYSTEM, _prompt(question, chunks, feedback)), "chunks": chunks}
 
 
-def ask(question: str) -> dict:
+def ask(question: str, on_step: Callable[[dict], None] | None = None) -> dict:
     """Router -> Tutor -> Verifier, with at most one Tutor retry.
 
-    Returns {"route", "answer", "chunks", "verdict", "retried", "first_answer"}.
+    Returns {"route", "answer", "chunks", "verdict", "retried", "first_answer", "trace"}.
     `verdict` is the Verifier's check of the first answer; the retry is not re-verified.
+    `trace` lists each agent call as {"agent", "detail", "seconds"}; `on_step` is called with each entry as it finishes.
     """
-    r = route(question)
+    trace = []
+
+    def step(agent: str, fn, describe):
+        start = time.perf_counter()
+        out = fn()
+        entry = {"agent": agent, "detail": describe(out), "seconds": round(time.perf_counter() - start, 1)}
+        trace.append(entry)
+        if on_step:
+            on_step(entry)
+        return out
+
+    r = step("Router", lambda: route(question), lambda r: f"route = `{r}`")
     if r == "off_topic":
         return {"route": r, "answer": OFF_TOPIC_REPLY, "chunks": [], "verdict": None,
-                "retried": False, "first_answer": None}
+                "retried": False, "first_answer": None, "trace": trace}
 
-    first = answer(question, r)
+    chunks = step("Retriever", lambda: retrieve(question, r),
+                  lambda c: f"top {len(c)} chunks where source = `{r}`")
+    first = step("Tutor", lambda: answer(question, r, chunks=chunks),
+                 lambda a: f"drafted an answer from {len(chunks)} excerpts")
     if not first["chunks"]:
-        return {"route": r, **first, "verdict": None, "retried": False, "first_answer": None}
+        return {"route": r, **first, "verdict": None, "retried": False, "first_answer": None, "trace": trace}
 
-    verdict = verify(first["answer"], first["chunks"])
-    result = {"route": r, **first, "verdict": verdict, "retried": False, "first_answer": first["answer"]}
+    verdict = step("Verifier", lambda: verify(first["answer"], first["chunks"]),
+                   lambda v: "all claims supported" if v["supported"]
+                   else f"{len(v['unsupported_claims'])} unsupported claim(s)")
+    result = {"route": r, **first, "verdict": verdict, "retried": False, "first_answer": first["answer"],
+              "trace": trace}
     if not verdict["supported"]:
-        retry = answer(question, r, feedback=feedback(verdict), chunks=first["chunks"])
+        retry = step("Tutor (retry)",
+                     lambda: answer(question, r, feedback=feedback(verdict), chunks=first["chunks"]),
+                     lambda a: "rewrote the answer using the Verifier's feedback")
         result.update(answer=retry["answer"], retried=True)
     return result
 

@@ -36,15 +36,16 @@ tutor/config.py        paths, model, chunk settings
 tutor/ingest.py        PDF → chunks → Chroma (python -m tutor.ingest)
 tutor/llm.py           shared LLM call helper (complete / complete_json): Groq if GROQ_API_KEY is set, else local Ollama
 tutor/router.py        Router agent: route(question) -> lecture | textbook | off_topic
-tutor/tutor.py         Tutor agent: retrieve(), answer(), ask() = Router -> Tutor -> Verifier (1 retry)
+tutor/tutor.py         Tutor agent: retrieve(), answer(), ask(q, on_step) = Router -> Tutor -> Verifier (1 retry), returns a per-agent trace
 tutor/verifier.py      Verifier agent: verify(answer, chunks) -> {supported, unsupported_claims}
 tests/questions.json   15 test questions (5 lecture, 5 textbook, 5 off_topic)
 tests/run_questions.py python -m tests.run_questions [--route]
 tests/check_verifier.py forced wrong answer must be caught (python -m tests.check_verifier)
 tutor/quizzer.py       Quizzer agent: next_question(topic?) -> grade(quiz, reply); CLI: python -m tutor.quizzer
 tests/check_quizzer.py offline check of progress.json logic, LLM stubbed (python -m tests.check_quizzer)
-app.py                 Streamlit UI with Ask and Quiz tabs (streamlit run app.py)
+app.py                 Streamlit UI: Ask / Quiz (example questions + topics) / How it works; shows each agent call (streamlit run app.py)
 Dockerfile             Render image: installs deps, runs ingestion at build time, serves Streamlit on $PORT
+.streamlit/config.toml theme
 render.yaml            Render Blueprint: free-plan Docker web service, GROQ_API_KEY set in dashboard
 docs/screenshots/      UI screenshots shown in the README
 chroma_db/             persisted vector store (gitignored)

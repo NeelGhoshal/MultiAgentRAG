@@ -47,7 +47,7 @@ QUIZ_TOPICS = ["Eigenvalues", "Singular value decomposition", "Gram-Schmidt", "G
                "Bayes' theorem", "Gaussian distribution", "Backpropagation", "Support vector machines",
                "Maximum likelihood estimation", "Convex optimization"]
 
-AGENT_ICONS = {"Router": "🧭", "Retriever": "🔎", "Tutor": "🧑‍🏫", "Verifier": "✅", "Tutor (retry)": "🔁",
+AGENT_ICONS = {"Router": "🧭", "Retriever": "🔎", "Tutor": "📖", "Verifier": "✅", "Tutor (retry)": "🔁",
                "Quizzer": "❓", "Grader": "📝"}
 
 
@@ -66,6 +66,12 @@ def safely(fn, *args, **kwargs):
     except Exception as e:  # noqa: BLE001 - UI boundary: surface anything (rate limit, ...)
         st.error(f"{type(e).__name__}: {e}")
         return None
+
+
+def md_math(text: str) -> str:
+    r"""LLMs often write LaTeX as \[...\] / \(...\); Streamlit only renders $$...$$ / $...$."""
+    text = re.sub(r"\\\[(.+?)\\\]", lambda m: f"$${m.group(1).strip()}$$", text, flags=re.S)
+    return re.sub(r"\\\((.+?)\\\)", lambda m: f"${m.group(1).strip()}$", text, flags=re.S)
 
 
 def step_html(entry: dict) -> str:
@@ -164,13 +170,13 @@ with ask_tab:
         st.markdown(row)
 
         with st.container(border=True):
-            st.markdown(result["answer"])
+            st.markdown(md_math(result["answer"]))
 
         render_trace(result["trace"])
         if result["retried"]:
             with st.expander("What the Verifier caught"):
                 st.markdown("**First draft:**")
-                st.markdown(result["first_answer"])
+                st.markdown(md_math(result["first_answer"]))
                 st.markdown("**Unsupported claims:**")
                 for c in verdict["unsupported_claims"]:
                     st.markdown(f"- {c}")
@@ -215,7 +221,7 @@ with quiz_tab:
         tag = f":orange-badge[Review: {quiz['review_of']}]" if quiz["review_of"] else f":blue-badge[{quiz['topic']}]"
         st.markdown(tag)
         with st.container(border=True):
-            st.markdown(f"**{quiz['question']}**")
+            st.markdown(f"**{md_math(quiz['question'])}**")
 
         graded = st.session_state.get("grade")
         with st.form("answer", border=False):
@@ -231,8 +237,9 @@ with quiz_tab:
                     st.rerun()  # refresh the sidebar's missed topics
 
         if graded:
-            (st.success if graded["correct"] else st.error)(
-                ("**Correct!** " if graded["correct"] else "**Not quite.** ") + graded["feedback"])
+            lead = "Correct!" if graded["correct"] else "Not quite."
+            fb = re.sub(rf"^\s*{re.escape(lead)}\s*", "", graded["feedback"])  # the grader often opens with it too
+            (st.success if graded["correct"] else st.error)(f"**{lead}** {md_math(fb)}")
             with st.expander("Reference answer"):
                 st.markdown(f"{quiz['answer']} {quiz['citation']}")
             if st.button("Next question →"):
@@ -252,7 +259,7 @@ digraph {
   node [shape=box style="rounded,filled" fillcolor="#eef2ff" color="#6366f1" fontname="Helvetica" fontsize=11];
   edge [color="#94a3b8" fontname="Helvetica" fontsize=9];
   Q [label="Question" shape=oval fillcolor="#f1f5f9" color="#94a3b8"];
-  R [label="🧭 Router"]; T [label="🧑‍🏫 Tutor"]; V [label="✅ Verifier"];
+  R [label="🧭 Router"]; T [label="📖 Tutor"]; V [label="✅ Verifier"];
   DB [label="Chroma\\nlecture + textbook" shape=cylinder fillcolor="#f0fdf4" color="#22c55e"];
   OFF [label="“Not covered in your\\ncourse materials.”" shape=note fillcolor="#fef2f2" color="#ef4444"];
   A [label="Cited answer" shape=oval fillcolor="#f0fdf4" color="#22c55e"];
@@ -266,7 +273,7 @@ digraph {
 | Agent | What it does |
 |---|---|
 | 🧭 **Router** | Classifies the question as `lecture`, `textbook` or `off_topic`. This doubles as the relevance check: off-topic questions get a fixed refusal and never reach retrieval. |
-| 🧑‍🏫 **Tutor** | Searches the vector index *only within the routed source* and answers strictly from those excerpts, citing `[file p.N]` after each claim. |
+| 📖 **Tutor** | Searches the vector index *only within the routed source* and answers strictly from those excerpts, citing `[file p.N]` after each claim. |
 | ✅ **Verifier** | Checks each claim in the answer against the same excerpts. If any is unsupported, the Tutor gets **one** retry with that feedback, and never more. |
 | ❓ **Quizzer** | Writes a question from a course chunk (a topic you pick, else your oldest missed topic, else random), grades your reply, and logs misses to `progress.json`. |
 """)

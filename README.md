@@ -8,27 +8,33 @@ coming back to the topics you missed.
 
 ## Screenshots
 
-**1. Ask tab.** Type a question about the course. The sidebar tracks topics you've missed in quizzes.
+**1. Ask tab.** Click an example question (lecture, textbook, or off-topic to see the refusal) or type your own.
+The sidebar shows topics you've missed in quizzes, the model in use, and the size of the index.
 
-![Ask tab with a question entered](docs/screenshots/1-ask.png)
+![Ask tab with example questions](docs/screenshots/1-ask.png)
 
-**2. A verified answer.** The Router sent "What is Linear Regression" to the lecture slides. The Tutor answered
-from the retrieved excerpts with a page citation (`[19_Linear_Regression_MLE_and_MAP.pdf p.11]`), and the Verifier
-confirmed every claim is supported. The excerpts the answer was built from can be opened underneath.
+**2. A verified answer, with the agent calls.** The Router sent the Cholesky question to the lecture slides, the
+Retriever pulled the top 5 lecture chunks, the Tutor answered with a page citation
+(`[05_Linear_Algebra_Eigenvalues_Eigenvectors_Eigenspaces_Cholesky.pdf p.63]`), and the Verifier confirmed every
+claim. The *Agent calls* panel lists each step and its time. Steps appear live while the question runs.
 
-![Answer with citation, Verifier approval and retrieved excerpts](docs/screenshots/2-answer-verified.png)
+![Answer with citation, Verified badge and the per-agent trace](docs/screenshots/2-answer-verified.png)
 
-**3. Quiz: a wrong answer.** The Quizzer wrote a question on change-of-basis matrices from a textbook chunk, graded
-the reply as incorrect, explained the right relationship, and offers the reference answer. The topic is logged
-to `progress.json` as missed.
+**3. Quiz: a wrong answer.** Pick a topic. The Quizzer writes a question from a matching course chunk, the Grader
+marks the reply incorrect and explains the right answer, and the topic is logged to `progress.json` (see the
+sidebar).
 
-![Quiz question graded as incorrect with feedback](docs/screenshots/3-quiz-incorrect.png)
+![Quiz question graded as incorrect, with the Quizzer and Grader calls](docs/screenshots/3-quiz-incorrect.png)
 
-**4. Quiz: a correct answer, with missed topics tracked.** A question on representing a matrix as a vector is
-graded correct, with the reference answer and its citation (`[mml-book.pdf p.28]`). The sidebar now lists
-"Change of Basis Matrices" from screenshot 3, which the next quiz will review first.
+**4. Quiz: a correct answer.** A gradient-descent question graded correct, with the reference answer and its
+citation. The missed topics in the sidebar are what the next quiz with no topic reviews first.
 
-![Quiz question graded correct; sidebar shows the missed topic](docs/screenshots/4-quiz-correct-missed-topics.png)
+![Quiz answer graded correct, reference answer and missed topics](docs/screenshots/4-quiz-correct-missed-topics.png)
+
+**5. How it works.** A diagram of the flow between the agents, what each agent does, and the design choices,
+inside the app.
+
+![How it works tab with the agent flow diagram](docs/screenshots/5-how-it-works.png)
 
 ## How it works
 
